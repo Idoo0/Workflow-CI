@@ -1,0 +1,135 @@
+name: MLflow Project CI and Docker
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  PYTHON_VERSION: "3.12.7"
+  IMAGE_REPOSITORY: bank-marketing-mlflow
+  MLFLOW_TRACKING_URI: file:${{ github.workspace }}/mlruns
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    outputs:
+      run_id: ${{ steps.run-info.outputs.run_id }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: MLProject/requirements.txt
+
+      - name: Install dependencies
+        run: python -m pip install --disable-pip-version-check -r MLProject/requirements.txt
+
+      - name: Run unit tests
+        run: python -m pytest -q tests
+
+      - name: Retrain through MLflow Project
+        shell: bash
+        run: |
+          set -euo pipefail
+          mlflow run ./MLProject \
+            --env-manager local \
+            --experiment-name bank-marketing-ci \
+            -P data_dir=MLProject/bank_preprocessing \
+            -P tracking_uri="${MLFLOW_TRACKING_URI}" \
+            -P output_dir=artifacts
+
+      - name: Expose run ID
+        id: run-info
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s MLProject/artifacts/run_id.txt
+          echo "run_id=$(cat MLProject/artifacts/run_id.txt)" >> "$GITHUB_OUTPUT"
+
+      - name: Upload training artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mlflow-training-${{ github.run_number }}
+          path: |
+            mlruns/
+            MLProject/artifacts/
+          if-no-files-found: error
+          retention-days: 30
+
+  docker:
+    needs: train
+    if: github.event_name == 'workflow_dispatch' || (github.event_name == 'push' && github.ref == 'refs/heads/main')
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+          cache: pip
+          cache-dependency-path: MLProject/requirements.txt
+
+      - name: Install MLflow
+        run: python -m pip install --disable-pip-version-check -r MLProject/requirements.txt
+
+      - name: Download MLflow training store
+        uses: actions/download-artifact@v4
+        with:
+          name: mlflow-training-${{ github.run_number }}
+          path: .
+
+      - name: Validate downloaded model
+        shell: bash
+        env:
+          RUN_ID: ${{ needs.train.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          test -n "$RUN_ID"
+          mlflow artifacts list --run-id "$RUN_ID"
+
+      - name: Build serving image with MLflow
+        shell: bash
+        env:
+          RUN_ID: ${{ needs.train.outputs.run_id }}
+        run: |
+          set -euo pipefail
+          mlflow models build-docker \
+            --model-uri "runs:/${RUN_ID}/model" \
+            --name "bank-marketing-mlflow:${GITHUB_SHA}" \
+            --env-manager local
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      - name: Tag and push image
+        shell: bash
+        env:
+          DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+        run: |
+          set -euo pipefail
+          test -n "$DOCKERHUB_USERNAME"
+          LOCAL_IMAGE="bank-marketing-mlflow:${GITHUB_SHA}"
+          REMOTE_IMAGE="${DOCKERHUB_USERNAME}/${IMAGE_REPOSITORY}"
+          docker tag "$LOCAL_IMAGE" "${REMOTE_IMAGE}:${GITHUB_SHA}"
+          docker tag "$LOCAL_IMAGE" "${REMOTE_IMAGE}:latest"
+          docker push "${REMOTE_IMAGE}:${GITHUB_SHA}"
+          docker push "${REMOTE_IMAGE}:latest"
