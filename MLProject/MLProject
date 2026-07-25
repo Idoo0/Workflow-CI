@@ -1,0 +1,29 @@
+name: bank-marketing-classifier
+
+conda_env: conda.yaml
+
+entry_points:
+  main:
+    parameters:
+      data_dir:
+        type: path
+        default: bank_preprocessing
+      tracking_uri:
+        type: string
+        default: "file:./mlruns"
+      output_dir:
+        type: string
+        default: artifacts
+      n_estimators:
+        type: int
+        default: 250
+      max_depth:
+        type: int
+        default: 12
+    command: >-
+      python modelling.py
+      --data-dir {data_dir}
+      --tracking-uri {tracking_uri}
+      --output-dir {output_dir}
+      --n-estimators {n_estimators}
+      --max-depth {max_depth}
