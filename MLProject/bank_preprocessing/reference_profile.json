@@ -1,0 +1,113 @@
+{
+  "numeric": {
+    "age": {
+      "min": 19.0,
+      "max": 87.0,
+      "mean": 41.043971238938056,
+      "std": 10.46335272073272,
+      "p01": 23.15,
+      "p99": 71.0
+    },
+    "balance": {
+      "min": -3313.0,
+      "max": 42045.0,
+      "mean": 1403.9344579646017,
+      "std": 2810.8976722493644,
+      "p01": -673.85,
+      "p99": 13704.699999999997
+    },
+    "day": {
+      "min": 1.0,
+      "max": 31.0,
+      "mean": 16.04092920353982,
+      "std": 8.205867856489872,
+      "p01": 2.0,
+      "p99": 31.0
+    },
+    "campaign": {
+      "min": 1.0,
+      "max": 50.0,
+      "mean": 2.795353982300885,
+      "std": 3.144411478681329,
+      "p01": 1.0,
+      "p99": 16.84999999999991
+    },
+    "pdays": {
+      "min": -1.0,
+      "max": 871.0,
+      "mean": 40.218473451327434,
+      "std": 100.15633991025392,
+      "p01": -1.0,
+      "p99": 370.0
+    },
+    "previous": {
+      "min": 0.0,
+      "max": 24.0,
+      "mean": 0.5459070796460177,
+      "std": 1.6570093996890434,
+      "p01": 0.0,
+      "p99": 7.849999999999909
+    }
+  },
+  "categorical": {
+    "job": [
+      "admin.",
+      "blue-collar",
+      "entrepreneur",
+      "housemaid",
+      "management",
+      "retired",
+      "self-employed",
+      "services",
+      "student",
+      "technician",
+      "unemployed"
+    ],
+    "marital": [
+      "divorced",
+      "married",
+      "single"
+    ],
+    "education": [
+      "primary",
+      "secondary",
+      "tertiary"
+    ],
+    "default": [
+      "no",
+      "yes"
+    ],
+    "housing": [
+      "no",
+      "yes"
+    ],
+    "loan": [
+      "no",
+      "yes"
+    ],
+    "contact": [
+      "cellular",
+      "telephone"
+    ],
+    "month": [
+      "apr",
+      "aug",
+      "dec",
+      "feb",
+      "jan",
+      "jul",
+      "jun",
+      "mar",
+      "may",
+      "nov",
+      "oct",
+      "sep"
+    ],
+    "poutcome": [
+      "failure",
+      "other",
+      "success"
+    ]
+  },
+  "target": "target"
+}

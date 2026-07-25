@@ -1,0 +1,43 @@
+{
+  "source_file": "bank.csv",
+  "source_sha256": "dc8d576e9bda0f41ee891251bd84bab9a39ce576cba715aac08adc2374a01fde",
+  "raw_rows": 4521,
+  "clean_rows": 4521,
+  "train_rows": 3616,
+  "test_rows": 905,
+  "input_feature_count": 15,
+  "transformed_feature_count": 46,
+  "numeric_features": [
+    "age",
+    "balance",
+    "day",
+    "campaign",
+    "pdays",
+    "previous"
+  ],
+  "categorical_features": [
+    "job",
+    "marital",
+    "education",
+    "default",
+    "housing",
+    "loan",
+    "contact",
+    "month",
+    "poutcome"
+  ],
+  "target_distribution_full": {
+    "0": 4000,
+    "1": 521
+  },
+  "target_positive_rate_train": 0.115320796460177,
+  "target_positive_rate_test": 0.11491712707182321,
+  "test_size": 0.2,
+  "random_state": 42,
+  "duplicates_removed": 0,
+  "unknown_values_converted_to_missing": 5254,
+  "leakage_columns_removed": [
+    "duration"
+  ],
+  "leakage_reason": "duration is only known after the marketing call ends and is unavailable for a pre-call prediction"
+}
